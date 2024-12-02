@@ -147,11 +147,23 @@ async function handleEnterAmount(chatId: number, text: string) {
   } else {
     await setUserData(chatId, 'amount', (amount * 97).toString());
   }
+  const maxAmount = 999999999999.99; // Maximum value for DECIMAL(16,2)
+  let amount: number;
+ 
 
+  // Check if the calculated amount exceeds the maximum
+  if (amount > maxAmount) {
+    await sendMessage(chatId, 'Amount too large. Please enter a smaller amount.');
+    return;
+  }
+
+  await setUserData(chatId, 'amount', calculatedAmount.toString());
   await setUserState(chatId, 'WALLET');
-  await sendMessage(chatId, `Amount set to ${await getUserData(chatId).then(data => data.amount)}₹\nNow, enter your wallet address:`);
+  await sendMessage(chatId, `Amount set to ${calculatedAmount.toFixed(2)}₹\nNow, enter your wallet address:`);
 }
-
+/** await setUserState(chatId, 'WALLET');
+  await sendMessage(chatId, `Amount set to ${await getUserData(chatId).then(data => data.amount)}₹\nNow, enter your wallet address:`);
+**/
 async function handleWallet(chatId: number, text: string) {
   if (validateWallet(text)) {
     await setUserData(chatId, 'wallet', text);
@@ -218,4 +230,5 @@ Transaction ID: ${userData.transaction_id}
 async function sendMessage(chatId: number, text: string, options?: any) {
   await bot.sendMessage(chatId, text, options);
 }
+
 
