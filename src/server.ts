@@ -34,4 +34,3 @@ app.listen(port, async () => {
 
 bot.on('message', handleUpdate);
 
-
