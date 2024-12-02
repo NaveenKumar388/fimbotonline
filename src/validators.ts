@@ -30,14 +30,7 @@ export function validatePlan(plan: string, crypto: string): PlanValidationResult
   if (plan in plans) {
     return { valid: true, amount: plans[plan] };
   } else if (plan === '8') {
-    const amount = parseFloat(plan);
-    if (isNaN(amount)) {
-      return { valid: false, message: 'Invalid amount. Please enter a valid number.' };
-    }
-    if (crypto === 'USDT' && amount < 5) {
-      return { valid: false, message: 'For USDT, the amount should be at least 5 USD.' };
-    }
-    return { valid: true, amount: crypto === 'USDT' ? amount * 92 : amount * 97 };
+    return { valid: true, message: crypto === 'USDT' ? 'enter the amount in dollars(minimum 5$(5 * 92))' : 'enter the amount in dollars' };
   }
   return { valid: false, message: 'Invalid choice. Please choose a valid option (1-7 or 8 for Others).' };
 }
