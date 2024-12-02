@@ -16,6 +16,9 @@ export async function saveUser(userData: any) {
       'INSERT INTO users (name, whatsapp_number, gmail, crypto, amount, wallet, upi, transaction_id) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)',
       [userData.name, userData.whatsapp, userData.gmail, userData.crypto, userData.amount, userData.wallet, userData.upi, userData.transaction_id]
     );
+  } catch (error) {
+    console.error('Error saving user:', error);
+    throw error;
   } finally {
     client.release();
   }
