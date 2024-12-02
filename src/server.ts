@@ -5,6 +5,7 @@ import { setupWebhook } from './webhook.js';
 import { handleUpdate } from './bot.js';
 import { pool } from './db.js';
 import { redisClient } from './redis.js';
+import initializeDatabase from './db-init.js';
 
 dotenv.config();
 
@@ -29,7 +30,8 @@ app.listen(port, async () => {
   try {
     await setupWebhook(bot);
     await pool.connect();
-    console.log('Connected to PostgreSQL and Redis');
+    await initializeDatabase();
+    console.log('Connected to PostgreSQL and Redis, database initialized');
   } catch (error) {
     console.error('Error during startup:', error);
     process.exit(1);
