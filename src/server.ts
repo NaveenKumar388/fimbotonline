@@ -26,11 +26,23 @@ app.get('/health', (_, res) => {
 
 app.listen(port, async () => {
   console.log(`Server is running on port ${port}`);
-  await setupWebhook(bot);
-  await pool.connect();
-  await redisClient.connect();
-  console.log('Connected to PostgreSQL and Redis');
+  try {
+    await setupWebhook(bot);
+    await pool.connect();
+    console.log('Connected to PostgreSQL and Redis');
+  } catch (error) {
+    console.error('Error during startup:', error);
+    process.exit(1);
+  }
 });
 
 bot.on('message', handleUpdate);
+
+// Handle graceful shutdown
+process.on('SIGTERM', async () => {
+  console.log('SIGTERM received. Closing connections...');
+  await pool.end();
+  await redisClient.quit();
+  process.exit(0);
+});
 
