@@ -131,28 +131,27 @@ async function handleSelectPlan(chatId: number, text: string) {
 async function handleEnterAmount(chatId: number, text: string) {
   const userData = await getUserData(chatId);
   const crypto = userData.crypto;
-  const amount = parseFloat(text);
+  const inputAmount = parseFloat(text);
 
-  if (isNaN(amount)) {
+  if (isNaN(inputAmount)) {
     await sendMessage(chatId, 'Please enter a valid number.');
     return;
   }
 
+  let calculatedAmount: number;
   if (crypto === 'USDT') {
-    if (amount < 5) {
+    if (inputAmount < 5) {
       await sendMessage(chatId, 'Please enter an amount of at least 5$.');
       return;
     }
-    await setUserData(chatId, 'amount', (amount * 92).toString());
+    calculatedAmount = inputAmount * 92;
   } else {
-    await setUserData(chatId, 'amount', (amount * 97).toString());
+    calculatedAmount = inputAmount * 97;
   }
-  const maxAmount = 999999999999.99; // Maximum value for DECIMAL(16,2)
-  let amount: number;
- 
 
-  // Check if the calculated amount exceeds the maximum
-  if (amount > maxAmount) {
+  const maxAmount = 999999999999.99; // Maximum value for DECIMAL(16,2)
+
+  if (calculatedAmount > maxAmount) {
     await sendMessage(chatId, 'Amount too large. Please enter a smaller amount.');
     return;
   }
@@ -161,9 +160,7 @@ async function handleEnterAmount(chatId: number, text: string) {
   await setUserState(chatId, 'WALLET');
   await sendMessage(chatId, `Amount set to ${calculatedAmount.toFixed(2)}₹\nNow, enter your wallet address:`);
 }
-/** await setUserState(chatId, 'WALLET');
-  await sendMessage(chatId, `Amount set to ${await getUserData(chatId).then(data => data.amount)}₹\nNow, enter your wallet address:`);
-**/
+
 async function handleWallet(chatId: number, text: string) {
   if (validateWallet(text)) {
     await setUserData(chatId, 'wallet', text);
@@ -230,5 +227,4 @@ Transaction ID: ${userData.transaction_id}
 async function sendMessage(chatId: number, text: string, options?: any) {
   await bot.sendMessage(chatId, text, options);
 }
-
 
