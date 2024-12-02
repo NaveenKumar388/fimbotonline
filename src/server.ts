@@ -1,10 +1,10 @@
 import express from 'express';
 import dotenv from 'dotenv';
 import TelegramBot from 'node-telegram-bot-api';
-import { setupWebhook } from './webhook';
-import { handleUpdate } from './bot';
-import { pool } from './db';
-import { redisClient } from './redis';
+import { setupWebhook } from './webhook.js';
+import { handleUpdate } from './bot.js';
+import { pool } from './db.js';
+import { redisClient } from './redis.js';
 
 dotenv.config();
 
