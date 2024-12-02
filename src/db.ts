@@ -42,3 +42,4 @@ export async function clearUserData(chatId: number): Promise<void> {
   await redisClient.del(`user:${chatId}:state`);
 }
 
+
