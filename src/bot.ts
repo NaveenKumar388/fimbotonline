@@ -3,6 +3,8 @@ import { saveUser, getUserState, setUserState, setUserData, getUserData, clearUs
 import { sendEmail } from './email.js';
 import { validateName, validateWhatsApp, validateGmail, validateCrypto, validatePlan, validateWallet, validateUPI, validateTransactionId } from './validators.js';
 
+const bot = new TelegramBot(process.env.BOT_TOKEN!, { polling: false });
+
 export async function handleUpdate(msg: TelegramBot.Message) {
   const chatId = msg.chat.id;
   const text = msg.text;
@@ -29,6 +31,9 @@ export async function handleUpdate(msg: TelegramBot.Message) {
       break;
     case 'SELECT_PLAN':
       await handleSelectPlan(chatId, text);
+      break;
+    case 'ENTER_AMOUNT':
+      await handleEnterAmount(chatId, text);
       break;
     case 'WALLET':
       await handleWallet(chatId, text);
@@ -109,13 +114,42 @@ async function handleSelectPlan(chatId: number, text: string) {
   const crypto = userData.crypto;
   const planResult = validatePlan(text, crypto);
 
-  if (planResult.valid && planResult.amount !== undefined) {
-    await setUserData(chatId, 'amount', planResult.amount.toString());
-    await setUserState(chatId, 'WALLET');
-    await sendMessage(chatId, `Plan selected: ${planResult.amount}₹\nNow, enter your wallet address:`);
+  if (planResult.valid) {
+    if (text === '8') {
+      await setUserState(chatId, 'ENTER_AMOUNT');
+      await sendMessage(chatId, planResult.message || 'Enter the amount:');
+    } else if (planResult.amount !== undefined) {
+      await setUserData(chatId, 'amount', planResult.amount.toString());
+      await setUserState(chatId, 'WALLET');
+      await sendMessage(chatId, `Plan selected: ${planResult.amount}₹\nNow, enter your wallet address:`);
+    }
   } else {
     await sendMessage(chatId, planResult.message || 'Invalid plan selection.');
   }
+}
+
+async function handleEnterAmount(chatId: number, text: string) {
+  const userData = await getUserData(chatId);
+  const crypto = userData.crypto;
+  const amount = parseFloat(text);
+
+  if (isNaN(amount)) {
+    await sendMessage(chatId, 'Please enter a valid number.');
+    return;
+  }
+
+  if (crypto === 'USDT') {
+    if (amount < 5) {
+      await sendMessage(chatId, 'Please enter an amount of at least 5$.');
+      return;
+    }
+    await setUserData(chatId, 'amount', (amount * 92).toString());
+  } else {
+    await setUserData(chatId, 'amount', (amount * 97).toString());
+  }
+
+  await setUserState(chatId, 'WALLET');
+  await sendMessage(chatId, `Amount set to ${await getUserData(chatId).then(data => data.amount)}₹\nNow, enter your wallet address:`);
 }
 
 async function handleWallet(chatId: number, text: string) {
@@ -182,7 +216,6 @@ Transaction ID: ${userData.transaction_id}
 }
 
 async function sendMessage(chatId: number, text: string, options?: any) {
-  const bot = new TelegramBot(process.env.BOT_TOKEN!, { polling: false });
   await bot.sendMessage(chatId, text, options);
 }
 
