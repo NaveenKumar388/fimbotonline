@@ -11,77 +11,82 @@ export async function handleUpdate(msg: TelegramBot.Message) {
 
   if (!text) return;
 
-  const currentState = await getUserState(chatId);
+  try {
+    const currentState = await getUserState(chatId);
 
-  switch (currentState) {
-    case 'START':
-      await handleStart(chatId);
-      break;
-    case 'NAME':
-      await handleName(chatId, text);
-      break;
-    case 'WHATSAPP':
-      await handleWhatsApp(chatId, text);
-      break;
-    case 'GMAIL':
-      await handleGmail(chatId, text);
-      break;
-    case 'CHOOSE_CRYPTO':
-      await handleChooseCrypto(chatId, text);
-      break;
-    case 'SELECT_PLAN':
-      await handleSelectPlan(chatId, text);
-      break;
-    case 'ENTER_AMOUNT':
-      await handleEnterAmount(chatId, text);
-      break;
-    case 'WALLET':
-      await handleWallet(chatId, text);
-      break;
-    case 'GETUPI':
-      await handleGetUPI(chatId, text);
-      break;
-    case 'PAYMENT_CONFIRMATION':
-      await handlePaymentConfirmation(chatId, text);
-      break;
-    case 'USERDETAILS':
-      await handleUserDetails(chatId, text);
-      break;
-    default:
-      await handleStart(chatId);
+    switch (currentState) {
+      case 'START':
+        await handleStart(bot, chatId);
+        break;
+      case 'NAME':
+        await handleName(bot, chatId, text);
+        break;
+      case 'WHATSAPP':
+        await handleWhatsApp(bot, chatId, text);
+        break;
+      case 'GMAIL':
+        await handleGmail(bot, chatId, text);
+        break;
+      case 'CHOOSE_CRYPTO':
+        await handleChooseCrypto(bot, chatId, text);
+        break;
+      case 'SELECT_PLAN':
+        await handleSelectPlan(bot, chatId, text);
+        break;
+      case 'ENTER_AMOUNT':
+        await handleEnterAmount(bot, chatId, text);
+        break;
+      case 'WALLET':
+        await handleWallet(bot, chatId, text);
+        break;
+      case 'GETUPI':
+        await handleGetUPI(bot, chatId, text);
+        break;
+      case 'PAYMENT_CONFIRMATION':
+        await handlePaymentConfirmation(bot, chatId, text);
+        break;
+      case 'USERDETAILS':
+        await handleUserDetails(bot, chatId, text);
+        break;
+      default:
+        await handleStart(bot, chatId);
+    }
+  } catch (error) {
+    console.error('Error handling update:', error);
+    await sendMessage(bot, chatId, 'An error occurred. Please try again later.');
   }
 }
 
-async function handleStart(chatId: number) {
+async function handleStart(bot: TelegramBot, chatId: number) {
   await setUserState(chatId, 'NAME');
-  await sendMessage(chatId, 'Welcome to FIM CRYPTO EXCHANGE! Please provide your name (letters only):');
+  await sendMessage(bot, chatId, 'Welcome to FIM CRYPTO EXCHANGE! Please provide your name (letters only):');
 }
 
-async function handleName(chatId: number, text: string) {
+async function handleName(bot: TelegramBot, chatId: number, text: string) {
   if (validateName(text)) {
     await setUserData(chatId, 'name', text);
     await setUserState(chatId, 'WHATSAPP');
-    await sendMessage(chatId, 'Name saved! Please enter your WhatsApp number (10 digits):');
+    await sendMessage(bot, chatId, 'Name saved! Please enter your WhatsApp number (10 digits):');
   } else {
-    await sendMessage(chatId, 'Invalid name. Please enter only letters.');
+    await sendMessage(bot, chatId, 'Invalid name. Please enter only letters.');
   }
 }
 
-async function handleWhatsApp(chatId: number, text: string) {
+async function handleWhatsApp(bot: TelegramBot, chatId: number, text: string) {
   if (validateWhatsApp(text)) {
     await setUserData(chatId, 'whatsapp', text);
     await setUserState(chatId, 'GMAIL');
-    await sendMessage(chatId, 'WhatsApp number saved! Please enter your Gmail address:');
+    await sendMessage(bot, chatId, 'WhatsApp number saved! Please enter your Gmail address:');
   } else {
-    await sendMessage(chatId, 'Invalid WhatsApp number. Enter a 10-digit number.');
+    await sendMessage(bot, chatId, 'Invalid WhatsApp number. Enter a 10-digit number.');
   }
 }
 
-async function handleGmail(chatId: number, text: string) {
+async function handleGmail(bot: TelegramBot, chatId: number, text: string) {
   if (validateGmail(text)) {
     await setUserData(chatId, 'gmail', text);
     await setUserState(chatId, 'CHOOSE_CRYPTO');
-    await sendMessage(chatId, 'Gmail saved! Choose your cryptocurrency:', {
+    await sendMessage(bot, chatId, 'Gmail saved! Choose your cryptocurrency:', {
       reply_markup: {
         keyboard: [
           [{ text: 'BNB' }, { text: 'USDT' }, { text: 'TON' }],
@@ -92,58 +97,57 @@ async function handleGmail(chatId: number, text: string) {
       },
     });
   } else {
-    await sendMessage(chatId, 'Invalid Gmail. Enter a valid Gmail address.');
+    await sendMessage(bot, chatId, 'Invalid Gmail. Enter a valid Gmail address.');
   }
 }
 
-async function handleChooseCrypto(chatId: number, text: string) {
+async function handleChooseCrypto(bot: TelegramBot, chatId: number, text: string) {
   if (validateCrypto(text)) {
     await setUserData(chatId, 'crypto', text);
     await setUserState(chatId, 'SELECT_PLAN');
     const planDescription = text === 'USDT'
       ? "Now, choose a plan by entering the number (1-8):\n1. 1$ - 92₹\n2. 2$ - 184₹\n3. 3$ - 276₹\n4. 4$ - 368₹\n5. 5$ - 458₹\n8. Others (Enter your amount in dollars):"
       : "Now, choose a plan by entering the number (1-8):\n1. 0.5$ - 55₹\n2. 1$ - 97₹\n3. 2$ - 194₹\n4. 3$ - 291₹\n5. 4$ - 388₹\n6. 5$ - 485₹\n7. 7$ - 680₹\n8. Others (Enter your amount in dollars):";
-    await sendMessage(chatId, planDescription);
+    await sendMessage(bot, chatId, planDescription);
   } else {
-    await sendMessage(chatId, 'Invalid cryptocurrency. Please choose from the options provided.');
+    await sendMessage(bot, chatId, 'Invalid cryptocurrency. Please choose from the options provided.');
   }
 }
 
-async function handleSelectPlan(chatId: number, text: string) {
+async function handleSelectPlan(bot: TelegramBot, chatId: number, text: string) {
   const userData = await getUserData(chatId);
-  const crypto = userData.crypto || ''; // Provide default empty string
+  const crypto = userData.crypto || ''; 
   const planResult = validatePlan(text, crypto);
 
   if (planResult.valid) {
     if (text === '8') {
       await setUserState(chatId, 'ENTER_AMOUNT');
-      // Ensure message is always a string
       const message = planResult.message || 'Enter the amount:';
-      await sendMessage(chatId, message);
+      await sendMessage(bot, chatId, message);
     } else if (planResult.amount !== undefined) {
       await setUserData(chatId, 'amount', planResult.amount.toString());
       await setUserState(chatId, 'WALLET');
-      await sendMessage(chatId, `Plan selected: ${planResult.amount}₹\nNow, enter your wallet address:`);
+      await sendMessage(bot, chatId, `Plan selected: ${planResult.amount}₹\nNow, enter your wallet address:`);
     }
   } else {
-    await sendMessage(chatId, planResult.message || 'Invalid plan selection.');
+    await sendMessage(bot, chatId, planResult.message || 'Invalid plan selection.');
   }
 }
 
-async function handleEnterAmount(chatId: number, text: string) {
+async function handleEnterAmount(bot: TelegramBot, chatId: number, text: string) {
   const userData = await getUserData(chatId);
   const crypto = userData.crypto;
   const inputAmount = parseFloat(text);
 
   if (isNaN(inputAmount)) {
-    await sendMessage(chatId, 'Please enter a valid number.');
+    await sendMessage(bot, chatId, 'Please enter a valid number.');
     return;
   }
 
   let calculatedAmount: number;
   if (crypto === 'USDT') {
     if (inputAmount < 5) {
-      await sendMessage(chatId, 'Please enter an amount of at least 5$.');
+      await sendMessage(bot, chatId, 'Please enter an amount of at least 5$.');
       return;
     }
     calculatedAmount = inputAmount * 92;
@@ -151,55 +155,54 @@ async function handleEnterAmount(chatId: number, text: string) {
     calculatedAmount = inputAmount * 97;
   }
 
-  const maxAmount = 999999999999.99; // Maximum value for DECIMAL(16,2)
+  const maxAmount = 999999999999.99; 
 
   if (calculatedAmount > maxAmount) {
-    await sendMessage(chatId, 'Amount too large. Please enter a smaller amount.');
+    await sendMessage(bot, chatId, 'Amount too large. Please enter a smaller amount.');
     return;
   }
 
   await setUserData(chatId, 'amount', calculatedAmount.toString());
   await setUserState(chatId, 'WALLET');
-  await sendMessage(chatId, `Amount set to ${calculatedAmount.toFixed(2)}₹\nNow, enter your wallet address:`);
+  await sendMessage(bot, chatId, `Amount set to ${calculatedAmount.toFixed(2)}₹\nNow, enter your wallet address:`);
 }
 
-async function handleWallet(chatId: number, text: string) {
+async function handleWallet(bot: TelegramBot, chatId: number, text: string) {
   if (validateWallet(text)) {
     await setUserData(chatId, 'wallet', text);
     await setUserState(chatId, 'GETUPI');
     const amount = (await getUserData(chatId)).amount;
     const ownerUpiId = process.env.OWNER_UPI_ID || 'Default UPI ID';
-    await sendMessage(chatId, `Wallet address saved! Proceed to payment: Pay ${amount} to UPI ID: ${ownerUpiId}.`);
+    await sendMessage(bot, chatId, `Wallet address saved! Proceed to payment: Pay ${amount} to UPI ID: ${ownerUpiId}.`);
     
-    // Send QR code image
     await bot.sendPhoto(chatId, 'owner_upi_qrcode.jpg', { caption: 'Scan this QR code to pay' });
     
-    await sendMessage(chatId, 'Please enter your UPI ID:');
+    await sendMessage(bot, chatId, 'Please enter your UPI ID:');
   } else {
-    await sendMessage(chatId, 'Invalid wallet address. Please enter a valid address.');
+    await sendMessage(bot, chatId, 'Invalid wallet address. Please enter a valid address.');
   }
 }
 
-async function handleGetUPI(chatId: number, text: string) {
+async function handleGetUPI(bot: TelegramBot, chatId: number, text: string) {
   if (validateUPI(text)) {
     await setUserData(chatId, 'upi', text);
     await setUserState(chatId, 'PAYMENT_CONFIRMATION');
-    await sendMessage(chatId, 'UPI ID Saved! Enter your Transaction ID:');
+    await sendMessage(bot, chatId, 'UPI ID Saved! Enter your Transaction ID:');
   } else {
-    await sendMessage(chatId, 'Invalid UPI ID. Please enter a valid UPI ID.');
+    await sendMessage(bot, chatId, 'Invalid UPI ID. Please enter a valid UPI ID.');
   }
 }
 
-async function handlePaymentConfirmation(chatId: number, text: string) {
+async function handlePaymentConfirmation(bot: TelegramBot, chatId: number, text: string) {
   if (validateTransactionId(text)) {
     await setUserData(chatId, 'transaction_id', text);
     await setUserState(chatId, 'USERDETAILS');
     const userData = await getUserData(chatId);
     const userDetails = getUserDetails(userData);
-    await sendMessage(chatId, userDetails);
-    await sendMessage(chatId, 'Confirm your details (yes/no):');
+    await sendMessage(bot, chatId, userDetails);
+    await sendMessage(bot, chatId, 'Confirm your details (yes/no):');
   } else {
-    await sendMessage(chatId, 'Invalid Transaction ID. Please enter a valid Transaction ID.');
+    await sendMessage(bot, chatId, 'Invalid Transaction ID. Please enter a valid Transaction ID.');
   }
 }
 
@@ -214,21 +217,21 @@ interface UserData {
   transaction_id: string;
 }
 
-async function handleUserDetails(chatId: number, text: string) {
+async function handleUserDetails(bot: TelegramBot, chatId: number, text: string) {
   if (text.toLowerCase() === 'yes') {
     const userData = await getUserData(chatId);
     if (isValidUserData(userData)) {
       await saveUser(userData);
       await sendEmail(userData);
       await clearUserData(chatId);
-      await sendMessage(chatId, `Thank you, ${userData.name}! Your information has been saved.`);
-      await sendMessage(chatId, 'For any issues, contact: @Praveenkumar157. For more inquiries, send an email to: fimcryptobot@gmail.com');
-      await sendMessage(chatId, 'THANK YOU! VISIT AGAIN...');
+      await sendMessage(bot, chatId, `Thank you, ${userData.name}! Your information has been saved.`);
+      await sendMessage(bot, chatId, 'For any issues, contact: @Praveenkumar157. For more inquiries, send an email to: fimcryptobot@gmail.com');
+      await sendMessage(bot, chatId, 'THANK YOU! VISIT AGAIN...');
     } else {
-      await sendMessage(chatId, 'Error: Incomplete user data. Please restart the bot and re-enter your details.');
+      await sendMessage(bot, chatId, 'Error: Incomplete user data. Please restart the bot and re-enter your details.');
     }
   } else {
-    await sendMessage(chatId, 'Please restart the bot and re-enter your details.');
+    await sendMessage(bot, chatId, 'Please restart the bot and re-enter your details.');
   }
   await setUserState(chatId, 'START');
 }
@@ -251,7 +254,7 @@ Transaction ID: ${userData.transaction_id || 'N/A'}
 `;
 }
 
-async function sendMessage(chatId: number, text: string, options?: any) {
+async function sendMessage(bot: TelegramBot, chatId: number, text: string, options?: any) {
   await bot.sendMessage(chatId, text, options);
 }
 
