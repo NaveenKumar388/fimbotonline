@@ -14,4 +14,3 @@ export async function setupWebhook(bot: TelegramBot) {
   }
 }
 
-
