@@ -111,13 +111,15 @@ async function handleChooseCrypto(chatId: number, text: string) {
 
 async function handleSelectPlan(chatId: number, text: string) {
   const userData = await getUserData(chatId);
-  const crypto = userData.crypto;
+  const crypto = userData.crypto || ''; // Provide default empty string
   const planResult = validatePlan(text, crypto);
 
   if (planResult.valid) {
     if (text === '8') {
       await setUserState(chatId, 'ENTER_AMOUNT');
-      await sendMessage(chatId, planResult.message || 'Enter the amount:');
+      // Ensure message is always a string
+      const message = planResult.message || 'Enter the amount:';
+      await sendMessage(chatId, message);
     } else if (planResult.amount !== undefined) {
       await setUserData(chatId, 'amount', planResult.amount.toString());
       await setUserState(chatId, 'WALLET');
@@ -236,16 +238,16 @@ function isValidUserData(userData: Partial<UserData>): userData is UserData {
             userData.amount && userData.wallet && userData.upi && userData.transaction_id);
 }
 
-function getUserDetails(userData: any): string {
+function getUserDetails(userData: Partial<UserData>): string {
   return `
-Name: ${userData.name}
-WhatsApp: ${userData.whatsapp}
-Gmail: ${userData.gmail}
-Cryptocurrency: ${userData.crypto}
-Plan: ${userData.amount}₹
-Wallet Address: ${userData.wallet}
-UPI ID: ${userData.upi}
-Transaction ID: ${userData.transaction_id}
+Name: ${userData.name || 'N/A'}
+WhatsApp: ${userData.whatsapp || 'N/A'}
+Gmail: ${userData.gmail || 'N/A'}
+Cryptocurrency: ${userData.crypto || 'N/A'}
+Plan: ${userData.amount || 'N/A'}₹
+Wallet Address: ${userData.wallet || 'N/A'}
+UPI ID: ${userData.upi || 'N/A'}
+Transaction ID: ${userData.transaction_id || 'N/A'}
 `;
 }
 
