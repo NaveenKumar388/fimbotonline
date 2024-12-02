@@ -1,5 +1,6 @@
 import pkg from 'pg';
 const { Pool } = pkg;
+import { redisClient } from './redis.js';
 
 export const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
