@@ -1,6 +1,18 @@
 import pkg from 'pg';
 const { Pool } = pkg;
-import { redisClient } from './redis.js';
+import { createClient } from 'redis';
+
+// Define a type for user data
+interface UserData {
+  name: string;
+  whatsapp: string;
+  gmail: string;
+  crypto: string;
+  amount: string;
+  wallet: string;
+  upi: string;
+  transaction_id: string;
+}
 
 export const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
@@ -9,7 +21,16 @@ export const pool = new Pool({
   }
 });
 
-export async function saveUser(userData: any) {
+export const redisClient = createClient({
+  url: process.env.REDIS_URL
+});
+
+redisClient.on('error', (err) => console.error('Redis Client Error', err));
+
+// Initialize Redis connection
+await redisClient.connect();
+
+export async function saveUser(userData: UserData): Promise<void> {
   const client = await pool.connect();
   try {
     await client.query(
@@ -37,12 +58,22 @@ export async function setUserData(chatId: number, key: string, value: string): P
   await redisClient.hSet(`user:${chatId}`, key, value);
 }
 
-export async function getUserData(chatId: number): Promise<any> {
+export async function getUserData(chatId: number): Promise<Partial<UserData>> {
   return redisClient.hGetAll(`user:${chatId}`);
 }
 
 export async function clearUserData(chatId: number): Promise<void> {
   await redisClient.del(`user:${chatId}`);
   await redisClient.del(`user:${chatId}:state`);
+}
+
+// Error handling wrapper for database operations
+export async function withErrorHandling<T>(operation: () => Promise<T>): Promise<T> {
+  try {
+    return await operation();
+  } catch (error) {
+    console.error('Database operation error:', error);
+    throw new Error('An error occurred during the database operation');
+  }
 }
 
