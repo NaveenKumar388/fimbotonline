@@ -54,8 +54,13 @@ export async function saveUser(userData: UserData): Promise<void> {
 }
 
 export async function getUserState(chatId: number): Promise<string> {
-  const state = await redisClient.get(`user:${chatId}:state`);
-  return state || 'START';
+  try {
+    const state = await redisClient.get(`user:${chatId}:state`);
+    return state || 'START';
+  } catch (error) {
+    console.error('Error getting user state:', error);
+    return 'START';
+  }
 }
 
 export async function setUserState(chatId: number, state: string): Promise<void> {
