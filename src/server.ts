@@ -17,7 +17,7 @@ app.use(express.json());
 
 app.post('/webhook', async (req, res) => {
   try {
-    await handleUpdate(bot, req.body);
+    await handleUpdate(req.body);
     res.sendStatus(200);
   } catch (error) {
     console.error('Error processing update:', error);
