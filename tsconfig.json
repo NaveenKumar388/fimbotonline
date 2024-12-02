@@ -2,13 +2,15 @@
   "compilerOptions": {
     "target": "es2018",
     "module": "commonjs",
-    "lib": ["es2018", "esnext.asynciterable"],
+    "lib": ["es2018", "esnext.asynciterable", "dom"],
     "strict": true,
     "esModuleInterop": true,
     "outDir": "./dist",
     "rootDir": "./src",
     "moduleResolution": "node",
-    "resolveJsonModule": true
+    "resolveJsonModule": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true
   },
   "include": ["src/**/*"],
   "exclude": ["node_modules"]
