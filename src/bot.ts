@@ -166,7 +166,12 @@ async function handleWallet(chatId: number, text: string) {
     await setUserData(chatId, 'wallet', text);
     await setUserState(chatId, 'GETUPI');
     const amount = (await getUserData(chatId)).amount;
-    await sendMessage(chatId, `Wallet address saved! Proceed to payment: Pay ${amount} to UPI ID: ${process.env.OWNER_UPI_ID}.`);
+    const ownerUpiId = process.env.OWNER_UPI_ID || 'Default UPI ID';
+    await sendMessage(chatId, `Wallet address saved! Proceed to payment: Pay ${amount} to UPI ID: ${ownerUpiId}.`);
+    
+    // Send QR code image
+    await bot.sendPhoto(chatId, 'owner_upi_qrcode.jpg', { caption: 'Scan this QR code to pay' });
+    
     await sendMessage(chatId, 'Please enter your UPI ID:');
   } else {
     await sendMessage(chatId, 'Invalid wallet address. Please enter a valid address.');
@@ -196,19 +201,39 @@ async function handlePaymentConfirmation(chatId: number, text: string) {
   }
 }
 
+interface UserData {
+  name: string;
+  whatsapp: string;
+  gmail: string;
+  crypto: string;
+  amount: string;
+  wallet: string;
+  upi: string;
+  transaction_id: string;
+}
+
 async function handleUserDetails(chatId: number, text: string) {
   if (text.toLowerCase() === 'yes') {
     const userData = await getUserData(chatId);
-    await saveUser(userData);
-    await sendEmail(userData);
-    await clearUserData(chatId);
-    await sendMessage(chatId, `Thank you, ${userData.name}! Your information has been saved.`);
-    await sendMessage(chatId, 'For any issues, contact: @Praveenkumar157. For more inquiries, send an email to: fimcryptobot@gmail.com');
-    await sendMessage(chatId, 'THANK YOU! VISIT AGAIN...');
+    if (isValidUserData(userData)) {
+      await saveUser(userData);
+      await sendEmail(userData);
+      await clearUserData(chatId);
+      await sendMessage(chatId, `Thank you, ${userData.name}! Your information has been saved.`);
+      await sendMessage(chatId, 'For any issues, contact: @Praveenkumar157. For more inquiries, send an email to: fimcryptobot@gmail.com');
+      await sendMessage(chatId, 'THANK YOU! VISIT AGAIN...');
+    } else {
+      await sendMessage(chatId, 'Error: Incomplete user data. Please restart the bot and re-enter your details.');
+    }
   } else {
     await sendMessage(chatId, 'Please restart the bot and re-enter your details.');
   }
   await setUserState(chatId, 'START');
+}
+
+function isValidUserData(userData: Partial<UserData>): userData is UserData {
+  return !!(userData.name && userData.whatsapp && userData.gmail && userData.crypto && 
+            userData.amount && userData.wallet && userData.upi && userData.transaction_id);
 }
 
 function getUserDetails(userData: any): string {
