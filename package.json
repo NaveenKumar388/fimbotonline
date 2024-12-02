@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "description": "FIM Crypto Exchange Telegram Bot",
   "main": "dist/server.js",
+  "engines": {
+    "node": ">=18.0.0"
+  },
   "scripts": {
     "build": "tsc",
     "start": "node dist/server.js",
