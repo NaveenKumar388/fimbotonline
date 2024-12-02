@@ -1,5 +1,5 @@
 import { Pool } from 'pg';
-import { redisClient } from './redis';
+import { redisClient } from './redis.js';
 
 export const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
@@ -41,5 +41,4 @@ export async function clearUserData(chatId: number): Promise<void> {
   await redisClient.del(`user:${chatId}`);
   await redisClient.del(`user:${chatId}:state`);
 }
-
 
