@@ -3,7 +3,7 @@ const { Pool } = pkg;
 import { createClient } from 'redis';
 
 // Define a type for user data
-interface UserData {
+export interface UserData {
   name: string;
   whatsapp: string;
   gmail: string;
@@ -28,7 +28,15 @@ export const redisClient = createClient({
 redisClient.on('error', (err) => console.error('Redis Client Error', err));
 
 // Initialize Redis connection
-await redisClient.connect();
+export async function initializeRedis() {
+  try {
+    await redisClient.connect();
+    console.log('Connected to Redis');
+  } catch (error) {
+    console.error('Failed to connect to Redis:', error);
+    throw error;
+  }
+}
 
 export async function saveUser(userData: UserData): Promise<void> {
   const client = await pool.connect();
@@ -59,7 +67,8 @@ export async function setUserData(chatId: number, key: string, value: string): P
 }
 
 export async function getUserData(chatId: number): Promise<Partial<UserData>> {
-  return redisClient.hGetAll(`user:${chatId}`);
+  const data = await redisClient.hGetAll(`user:${chatId}`);
+  return data as Partial<UserData>;
 }
 
 export async function clearUserData(chatId: number): Promise<void> {
@@ -74,6 +83,18 @@ export async function withErrorHandling<T>(operation: () => Promise<T>): Promise
   } catch (error) {
     console.error('Database operation error:', error);
     throw new Error('An error occurred during the database operation');
+  }
+}
+
+// Function to close database connections
+export async function closeDatabaseConnections(): Promise<void> {
+  try {
+    await pool.end();
+    await redisClient.quit();
+    console.log('Database connections closed');
+  } catch (error) {
+    console.error('Error closing database connections:', error);
+    throw error;
   }
 }
 
